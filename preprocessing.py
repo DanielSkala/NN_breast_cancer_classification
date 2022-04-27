@@ -48,7 +48,10 @@ def linear_regression(df):
         [[17.99, 10.38, 122.8, 1001, 0.1184, 0.2776, 0.3001, 0.1471, 0.2419, 0.07871]])
     pred_B = regr.predict(
         [[0.2271, 1.255, 1.441, 16.16, 0.005969, 0.01812, 0.02007, 0.007027, 0.01972, 0.002607]])
-    print(f"Predicted M: {pred_M}\nPredicted B: {pred_B}")
+    print(f"\nPredicted M: {pred_M}\nPredicted B: {pred_B}")
+
+    coefficients = regr.coef_
+    print(f"Coefficients: {coefficients}")
 
 
 if __name__ == '__main__':
