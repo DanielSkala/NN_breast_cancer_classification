@@ -5,11 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# TODO: normalize input data
-# TODO: regularization
-# TODO: trainable bias
-# TODO: PCA
-# TODO: dropout
+# TODO: normalize input data - Medhad
+# TODO: regularization, dropout - Bianca
+# TODO: trainable bias - Mitja
+# TODO: PCA - Daniel
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
