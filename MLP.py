@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+# TODO: normalize input data
+# TODO: regularization
+# TODO: trainable bias
+# TODO: PCA
+# TODO: dropout
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -20,86 +26,86 @@ def normalized_mse(y_pred, y_true):
 def accuracy(y_pred, y_true):
     hit_pred = y_pred >= 0.5
     hit_true = y_true >= 0.5
-
     return (hit_pred == hit_true).sum() / y_true.size
+
+
+def split_dataset():
+    df = pd.read_csv('databases/wdbc_split.csv')
+    y = pd.get_dummies(df.label).values
+    y = y[:, 0]
+    x = df.drop('label', 1)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=80, random_state=42)
+    y_train = y_train.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+    return x_train, x_test, y_train, y_test
+
+
+def feed_forward(weights, inputs):
+    activation_layers = [sigmoid(np.dot(inputs, weights[0]))]
+    for i in range(1, len(weights)):
+        activation_layers.append(sigmoid(np.dot(activation_layers[i - 1], weights[i])))
+    return activation_layers
+
+
+def backpropagation(weights, activation_layers, y_true):
+    diff = (activation_layers[-1] - y_true)
+    dot_one = activation_layers[-1] * diff
+    delta_layers = [dot_one * (1 - activation_layers[-1])]
+
+    for i in range(len(weights) - 1, 0, -1):
+        delta_layers.append(np.dot(delta_layers[-1], weights[i].T) * activation_layers[i - 1] *
+                            (1 - activation_layers[i - 1]))
+    delta_layers.reverse()
+    return delta_layers
 
 
 if __name__ == '__main__':
 
     input_size = 10
-    hidden_size = 100
+    hidden_size_1 = 15
+    hidden_size_2 = 15
     output_size = 1
     learning_rate = 0.008
-    iterations = 20000
+    epochs = 2000
 
-    df = pd.read_csv('databases/wdbc_split.csv')
-    y = pd.get_dummies(df.label).values
-    y = y[:, 0]
-    x = df = df.drop('label', 1)
+    x_train, x_test, y_train, y_test = split_dataset()
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=80, random_state=8)
+    W1 = np.random.normal(scale=0.5, size=(input_size, hidden_size_1))
+    W2 = np.random.normal(scale=0.5, size=(hidden_size_1, hidden_size_2))
+    W3 = np.random.normal(scale=0.5, size=(hidden_size_2, output_size))
 
-    # plt.plot(y_train)
-    # plt.plot(y_test)
-    # plt.show()
-
-    W1 = np.random.normal(scale=0.5, size=(input_size, hidden_size))
-    W2 = np.random.normal(scale=0.5, size=(hidden_size, output_size))
     N = y_train.size
-
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
 
     train_errors = []
     test_errors = []
 
-    for itr in range(iterations):
-        Z1 = np.dot(x_train, W1)
-        A1 = sigmoid(Z1)
+    weights = [W1, W2, W3]
 
-        Z2 = np.dot(A1, W2)
-        A2 = sigmoid(Z2)
+    train_outs = []
+    test_outs = []
 
-        mse = normalized_mse(A2, y_train)
-        # acc = accuracy(A2, y_train)
-        # results=results.append({"mse":mse, "accuracy":acc},ignore_index=True )
-        # print(mse)
-        train_errors.append(mse)
+    for i in range(epochs):
+        # Feed forward
+        train_outs = feed_forward(weights, x_train)
+        test_outs = feed_forward(weights, x_test)
 
-        E1 = A2 - y_train
-        # dW1 = np.multiply(E1, np.multiply(A2, 1 - A2))
-        dW1 = E1 * A2 * (1 - A2)
+        # Backpropagation
+        delta_layers = backpropagation(weights, train_outs, y_train)
 
-        E2 = np.dot(dW1, W2.T)
-        dW2 = E2 * A1 * (1 - A1)
+        # Update weights
+        weights[0] -= learning_rate * np.dot(x_train.T, delta_layers[0]) / N
+        for i in range(1, len(weights)):
+            weights[i] -= learning_rate * np.dot(train_outs[i - 1].T, delta_layers[i]) / N
 
-        W2_update = np.dot(A1.T, dW1) / N
-        W1_update = np.dot(x_train.T, dW2) / N
+        # Calculate errors
+        train_errors.append(normalized_mse(train_outs[-1], y_train))
+        test_errors.append(normalized_mse(feed_forward(weights, x_test)[-1], y_test))
 
-        W2 = W2 - learning_rate * W2_update
-        W1 = W1 - learning_rate * W1_update
-
-        Z1 = np.dot(x_test, W1)
-        A1 = sigmoid(Z1)
-
-        Z2 = np.dot(A1, W2)
-        A2 = sigmoid(Z2)
-
-        acc = normalized_mse(A2, y_test)
-        test_errors.append(acc)
-
-    Z1 = np.dot(x_test, W1)
-    A1 = sigmoid(Z1)
-
-    Z2 = np.dot(A1, W2)
-    A2 = sigmoid(Z2)
-    print(np.mean(A2))
-
-    acc = accuracy(A2, y_test)
+    acc = accuracy(train_outs[-1], y_train)
     print("Accuracy: {}".format(acc))
 
     # Density plot
-    sns.kdeplot(A2.flatten(), label='Train')
+    sns.kdeplot(test_outs[-1].flatten(), label='Train')
     sns.kdeplot(y_test.flatten(), label='Test')
     plt.legend()
     plt.title("Mean Squared Error")
