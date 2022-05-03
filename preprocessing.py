@@ -3,6 +3,8 @@ from sklearn import linear_model
 from tabulate import tabulate
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 
 def corr_matrix(df):
@@ -54,6 +56,40 @@ def linear_regression(df):
     print(f"Coefficients: {coefficients}")
 
 
+def pca(df, target_dim):
+    x = df.drop('label', 1)
+    scalar = StandardScaler()
+    x = scalar.fit_transform(x)
+    pca = PCA(n_components=target_dim)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents,
+                               columns=[f"f{i}" for i in range(1, target_dim + 1)])
+    finalDf = pd.concat([principalDf, df[['label']]], axis=1)
+
+    # 3D plot
+    if target_dim == 3:
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        targets = ['M', 'B']
+        colors = ['g', 'r']
+        for target, color in zip(targets, colors):
+            indicesToKeep = finalDf['label'] == target
+            ax.scatter(finalDf.loc[indicesToKeep, 'f1'],
+                       finalDf.loc[indicesToKeep, 'f2'],
+                       finalDf.loc[indicesToKeep, 'f3'],
+                       c=color, s=5)
+        ax.legend(targets)
+        ax.grid()
+        ax.set_xlabel('f1', fontsize=15)
+        ax.set_ylabel('f2', fontsize=15)
+        ax.set_zlabel('f3', fontsize=15)
+        ax.set_title('PCA', fontsize=20)
+        ax.view_init(30, 80)
+        plt.show()
+
+    return finalDf
+
+
 if __name__ == '__main__':
     # output all lines
     pd.set_option('display.max_rows', None)
@@ -63,3 +99,4 @@ if __name__ == '__main__':
 
     corr_matrix(df)
     linear_regression(df)
+    reduced_df = pca(df, 3)
