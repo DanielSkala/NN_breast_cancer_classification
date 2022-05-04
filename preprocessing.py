@@ -84,7 +84,7 @@ def pca(df, target_dim):
         ax.set_ylabel('f2', fontsize=15)
         ax.set_zlabel('f3', fontsize=15)
         ax.set_title('PCA', fontsize=20)
-        ax.view_init(30, 80)
+        ax.view_init(30, 50)
         plt.show()
 
     return finalDf

@@ -40,7 +40,7 @@ def split_dataset():
     y = pd.get_dummies(df.label).values
     y = y[:, 0]
     x = df.drop('label', 1)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=300, random_state=23)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=200, random_state=23)
 
     y_train = y_train.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
@@ -73,27 +73,27 @@ def backpropagation(weights, activation_layers, y_true):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 70
-    hidden_size_2 = 70
+    hidden_size_1 = 15
+    # hidden_size_2 = 15
     output_size = 1
-    learning_rate = 0.01
-    epochs = 1000
+    learning_rate = 1.8
+    epochs = 25000
 
     x_train, x_test, y_train, y_test = split_dataset()
 
     x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
-    W1 = np.random.normal(scale=0.5, size=(input_size + 1, hidden_size_1))
-    W2 = np.random.normal(scale=0.5, size=(hidden_size_1 + 1, hidden_size_2))
-    W3 = np.random.normal(scale=0.5, size=(hidden_size_2 + 1, output_size))
+    W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+    # W2 = np.random.normal(scale=0.5, size=(hidden_size_1 + 1, hidden_size_2))
+    W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
     N = y_train.size
 
     train_errors = []
     test_errors = []
 
-    weights = [W1, W2, W3]
+    weights = [W1, W3]
 
     train_outs = []
     test_outs = []
@@ -119,20 +119,31 @@ if __name__ == '__main__':
         test_errors.append(normalized_mse(feed_forward(weights, x_test)[-1], y_test))
 
     end_time = time.time()
-    acc = accuracy(train_outs[-1], y_train)
+    acc = accuracy(test_outs[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
     print("Accuracy: {}".format(acc))
 
-    # Density plot
-    sns.kdeplot(test_outs[-1].flatten(), label='Train')
-    sns.kdeplot(y_test.flatten(), label='Test')
+    # Density plot sns
+    sns.set(style="whitegrid")
+    sns.set(rc={"figure.figsize": (10, 6)})
+    sns.set(font_scale=1.5)
+    sns.kdeplot(test_outs[-1].flatten(), label="Training")
+    sns.kdeplot(y_test.flatten(), label="Test")
     plt.legend()
-    plt.title("Mean Squared Error")
+    plt.title("Density plot")
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
     plt.show()
 
-    plt.plot(train_errors, label='Train')
-    plt.plot(test_errors, label='Test')
+    # Train Test error plot
+    sns.set(style="whitegrid")
+    sns.set(rc={"figure.figsize": (10, 6)})
+    sns.set(font_scale=1.5)
+    sns.lineplot(x=range(epochs), y=train_errors, label='Train')
+    sns.lineplot(x=range(epochs), y=test_errors, label='Test')
     plt.legend()
-    plt.title("Mean Squared Error")
+    plt.title(f"Mean Squared Error (acc: {round(acc, 2)})")
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE")
     plt.show()
