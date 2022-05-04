@@ -35,7 +35,7 @@ def accuracy(y_pred, y_true):
 
 
 def split_dataset():
-    df = pd.read_csv('databases/wdbc_split.csv')
+    df = pd.read_csv('databases/wdbc_split_norm.csv')
     df = pca(df, NUM_FEATURES)  # Reducing dimensions
     y = pd.get_dummies(df.label).values
     y = y[:, 0]
