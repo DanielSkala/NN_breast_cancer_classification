@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
 
 
 # TODO: normalize input data - Medhad
@@ -11,6 +12,7 @@ import seaborn as sns
 # TODO: PCA - Daniel
 
 def sigmoid(x):
+    warnings.filterwarnings('ignore')
     return 1 / (1 + np.exp(-x))
 
 
@@ -33,7 +35,8 @@ def split_dataset():
     y = pd.get_dummies(df.label).values
     y = y[:, 0]
     x = df.drop('label', 1)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=80, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=300, random_state=23)
+
     y_train = y_train.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
     return x_train, x_test, y_train, y_test
@@ -42,9 +45,10 @@ def split_dataset():
 def feed_forward(weights, inputs):
     activation_layers = [sigmoid(np.dot(inputs, weights[0]))]
     for i in range(1, len(weights)):
+        activation_layers[i-1] = np.hstack((activation_layers[i-1], np.ones((activation_layers[i-1].shape[0], 1))))
         activation_layers.append(sigmoid(np.dot(activation_layers[i - 1], weights[i])))
+        
     return activation_layers
-
 
 def backpropagation(weights, activation_layers, y_true):
     diff = (activation_layers[-1] - y_true)
@@ -52,8 +56,9 @@ def backpropagation(weights, activation_layers, y_true):
     delta_layers = [dot_one * (1 - activation_layers[-1])]
 
     for i in range(len(weights) - 1, 0, -1):
-        delta_layers.append(np.dot(delta_layers[-1], weights[i].T) * activation_layers[i - 1] *
-                            (1 - activation_layers[i - 1]))
+        a = np.dot(delta_layers[-1], weights[i][:-1].T)
+        b = activation_layers[i - 1] * (1 - activation_layers[i - 1])
+        delta_layers.append(a * b[:,:-1])
     delta_layers.reverse()
     return delta_layers
 
@@ -61,17 +66,20 @@ def backpropagation(weights, activation_layers, y_true):
 if __name__ == '__main__':
 
     input_size = 10
-    hidden_size_1 = 15
-    hidden_size_2 = 15
+    hidden_size_1 = 70
+    hidden_size_2 = 70
     output_size = 1
-    learning_rate = 0.008
-    epochs = 2000
+    learning_rate = 0.01
+    epochs = 10000
 
     x_train, x_test, y_train, y_test = split_dataset()
 
-    W1 = np.random.normal(scale=0.5, size=(input_size, hidden_size_1))
-    W2 = np.random.normal(scale=0.5, size=(hidden_size_1, hidden_size_2))
-    W3 = np.random.normal(scale=0.5, size=(hidden_size_2, output_size))
+    x_train = np.hstack((x_train, np.ones(( x_train.shape[0], 1))))
+    x_test = np.hstack((x_test, np.ones(( x_test.shape[0], 1))))
+
+    W1 = np.random.normal(scale=0.5, size=(input_size + 1, hidden_size_1))
+    W2 = np.random.normal(scale=0.5, size=(hidden_size_1 + 1, hidden_size_2))
+    W3 = np.random.normal(scale=0.5, size=(hidden_size_2 + 1, output_size))
 
     N = y_train.size
 
@@ -84,6 +92,7 @@ if __name__ == '__main__':
     test_outs = []
 
     for i in range(epochs):
+
         # Feed forward
         train_outs = feed_forward(weights, x_train)
         test_outs = feed_forward(weights, x_test)
