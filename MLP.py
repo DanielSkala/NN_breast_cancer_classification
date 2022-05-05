@@ -7,7 +7,7 @@ import warnings
 from preprocessing import pca
 import time
 
-# TODO: normalize input data - Medhad
+# TODO: normalize input data - Medhat
 # TODO: regularization, dropout - Bianca
 # TODO: trainable bias - Mitja
 # TODO: PCA - Daniel
