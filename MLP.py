@@ -7,7 +7,7 @@ import warnings
 from preprocessing import pca
 import time
 
-# TODO: normalize input data - Medhad
+# TODO: normalize input data - Medhat
 # TODO: regularization, dropout - Bianca
 # TODO: trainable bias - Mitja
 # TODO: PCA - Daniel
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
     W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W2 = np.random.normal(scale=0.5, size=(hidden_size_1 + 1, hidden_size_2))
+    # W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
     W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
     N = y_train.size
@@ -104,7 +104,6 @@ if __name__ == '__main__':
 
         # Feed forward
         train_outs = feed_forward(weights, x_train)
-        test_outs = feed_forward(weights, x_test)
 
         # Backpropagation
         delta_layers = backpropagation(weights, train_outs, y_train)
@@ -119,6 +118,9 @@ if __name__ == '__main__':
         test_errors.append(normalized_mse(feed_forward(weights, x_test)[-1], y_test))
 
     end_time = time.time()
+
+    test_outs = feed_forward(weights, x_test)
+
     acc = accuracy(test_outs[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
@@ -143,7 +145,7 @@ if __name__ == '__main__':
     sns.lineplot(x=range(epochs), y=train_errors, label='Train')
     sns.lineplot(x=range(epochs), y=test_errors, label='Test')
     plt.legend()
-    plt.title(f"Mean Squared Error (acc: {round(acc, 2)})")
+    plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
     plt.xlabel("Epochs")
     plt.ylabel("MSE")
     plt.show()
