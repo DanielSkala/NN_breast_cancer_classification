@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # hidden_size_2 = 15
     output_size = 1
     learning_rate = 0.3
-    epochs = 2000
+    epochs = 10000
 
     x_train, x_test, y_train, y_test = split_dataset()
 
