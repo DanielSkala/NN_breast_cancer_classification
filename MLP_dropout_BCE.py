@@ -8,13 +8,29 @@ from preprocessing import pca
 import time
 import copy
 
-NUM_FEATURES = 5
+NUM_FEATURES = 8
 KEEP_RATE = 0.95
 
 
 def sigmoid(x):
     warnings.filterwarnings('ignore')
     return 1 / (1 + np.exp(-x))
+
+
+def derivative_BCE_loss(y_pred, y_true):
+    dL = np.zeros(y_true.shape)
+    for i in range(len(y_true)):
+        if y_true[i] == 0:
+            if y_pred[i] == 1:
+                dL[i] = 1000000
+            else:
+                dL[i] = (1 / (1 - y_pred[i]))
+        else:
+            if y_pred[i] == 0:
+                dL[i] = 1000000
+            else:
+                dL[i] = (-1 / y_pred[i])
+    return dL
 
 
 def mean_squared_error(y_pred, y_true):
@@ -73,7 +89,8 @@ def feed_forward_dropout(weights, inputs):
 
 
 def backpropagation(weights, activation_layers, y_true):
-    diff = (activation_layers[-1] - y_true)
+    #diff = np.power(activation_layers[-1] - y_true, 5)
+    diff = derivative_BC_loss(activation_layers[-1], y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
 
@@ -86,7 +103,8 @@ def backpropagation(weights, activation_layers, y_true):
 
 
 def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
-    diff = (activation_layers[-1] - y_true)
+    #diff = np.power(activation_layers[-1] - y_true, 5)
+    diff = derivative_BC_loss(activation_layers[-1], y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
     delta_layers[0] = (delta_layers[0] * dropouts[-1]) / keep_rate
@@ -102,10 +120,10 @@ def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 15
-    # hidden_size_2 = 15
+    hidden_size_1 = 300
+    hidden_size_2 = 300
     output_size = 1
-    learning_rate = 0.3
+    learning_rate = 0.1
     epochs = 10000
 
     x_train, x_test, y_train, y_test = split_dataset()
@@ -114,7 +132,7 @@ if __name__ == '__main__':
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
     W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+    W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
     W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
     N = y_train.size
@@ -124,7 +142,7 @@ if __name__ == '__main__':
     train_errors2 = []
     test_errors2 = []
 
-    weights1 = [W1, W3]
+    weights1 = [W1, W2, W3]
     weights2 = copy.deepcopy(weights1)
 
     train_outs1 = []
@@ -165,7 +183,7 @@ if __name__ == '__main__':
     test_outs1 = feed_forward(weights1, x_test)
     test_outs2 = feed_forward(weights2, x_test)
 
-    # print(test_outs2[-1])
+    print(test_outs2[-1])
 
     acc = accuracy(test_outs1[-1], y_test)
 
@@ -178,17 +196,17 @@ if __name__ == '__main__':
     print("Accuracy With DropOut: {}".format(acc))
 
     # Density plot sns
-    # sns.set(style="whitegrid")
-    # sns.set(rc={"figure.figsize": (10, 6)})
-    # sns.set(font_scale=1.5)
-    # sns.kdeplot(test_outs1[-1].flatten(), label="Training1")
-    # sns.kdeplot(test_outs2[-1].flatten(), label="Training2")
-    # sns.kdeplot(y_test.flatten(), label="Test")
-    # plt.legend()
-    # plt.title("Density plot")
-    # plt.xlabel("Predicted")
-    # plt.ylabel("True")
-    # plt.show()
+    sns.set(style="whitegrid")
+    sns.set(rc={"figure.figsize": (10, 6)})
+    sns.set(font_scale=1.5)
+    sns.kdeplot(test_outs1[-1].flatten(), label="Training1")
+    sns.kdeplot(test_outs2[-1].flatten(), label="Training2")
+    sns.kdeplot(y_test.flatten(), label="Test")
+    plt.legend()
+    plt.title("Density plot")
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.show()
 
     # Train Test error plot
     sns.set(style="whitegrid")
