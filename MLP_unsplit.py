@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
@@ -110,11 +110,11 @@ def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 15
+    hidden_size_1 = 7
     # hidden_size_2 = 15
     output_size = 1
-    learning_rate = 0.3
-    epochs = 10000
+    learning_rate = 0.1
+    epochs = 5000
 
     x_train1, x_test1, x_train2, x_test2, x_train3, x_test3, y_train, y_test = split_dataset()
 
@@ -241,35 +241,35 @@ if __name__ == '__main__':
 
     # print(test_outs2[-1])
 
-    acc = accuracy(test_outs11[-1], y_test)
+    means_acc_wdrop = accuracy(test_outs11[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 1 Without DropOut: {}".format(acc))
+    print("Accuracy 1 Without DropOut: {}".format(means_acc_wdrop))
 
-    acc = accuracy(test_outs12[-1], y_test)
-
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 1 With DropOut: {}".format(acc))
-
-    acc = accuracy(test_outs21[-1], y_test)
+    means_acc_drop = accuracy(test_outs12[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 2 Without DropOut: {}".format(acc))
+    print("Accuracy 1 With DropOut: {}".format(means_acc_drop))
 
-    acc = accuracy(test_outs22[-1], y_test)
-
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 2 With DropOut: {}".format(acc))
-
-    acc = accuracy(test_outs31[-1], y_test)
+    sds_acc_wdrop = accuracy(test_outs21[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 3 Without DropOut: {}".format(acc))
+    print("Accuracy 2 Without DropOut: {}".format(sds_acc_wdrop))
 
-    acc = accuracy(test_outs32[-1], y_test)
+    sds_acc_drop = accuracy(test_outs22[-1], y_test)
 
     print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 3 With DropOut: {}".format(acc))
+    print("Accuracy 2 With DropOut: {}".format(sds_acc_drop))
+
+    worst_acc_wdrop = accuracy(test_outs31[-1], y_test)
+
+    print(f"Time: {round(end_time - start_time, 2)}s")
+    print("Accuracy 3 Without DropOut: {}".format(worst_acc_wdrop))
+
+    worst_acc_drop = accuracy(test_outs32[-1], y_test)
+
+    print(f"Time: {round(end_time - start_time, 2)}s")
+    print("Accuracy 3 With DropOut: {}".format(worst_acc_drop))
 
     # Density plot sns
     # sns.set(style="whitegrid")
@@ -285,15 +285,15 @@ if __name__ == '__main__':
     # plt.show()
 
     # Train Test error plot
-    sns.set(style="whitegrid")
-    sns.set(rc={"figure.figsize": (10, 6)})
-    sns.set(font_scale=1.5)
-    sns.lineplot(x=range(epochs), y=train_errors1, label='Train1')
-    sns.lineplot(x=range(epochs), y=test_errors1, label='Test1')
-    sns.lineplot(x=range(epochs), y=train_errors2, label='Train2')
-    sns.lineplot(x=range(epochs), y=test_errors2, label='Test2')
-    plt.legend()
-    plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
-    plt.xlabel("Epochs")
-    plt.ylabel("MSE")
-    plt.show()
+    # sns.set(style="whitegrid")
+    # sns.set(rc={"figure.figsize": (10, 6)})
+    # sns.set(font_scale=1.5)
+    # sns.lineplot(x=range(epochs), y=train_errors1, label='Train1')
+    # sns.lineplot(x=range(epochs), y=test_errors1, label='Test1')
+    # sns.lineplot(x=range(epochs), y=train_errors2, label='Train2')
+    # sns.lineplot(x=range(epochs), y=test_errors2, label='Test2')
+    # plt.legend()
+    # plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
+    # plt.xlabel("Epochs")
+    # plt.ylabel("MSE")
+    # plt.show()

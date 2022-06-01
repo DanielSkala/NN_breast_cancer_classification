@@ -90,7 +90,7 @@ def feed_forward_dropout(weights, inputs):
 
 def backpropagation(weights, activation_layers, y_true):
     #diff = np.power(activation_layers[-1] - y_true, 5)
-    diff = derivative_BC_loss(activation_layers[-1], y_true)
+    diff = derivative_BCE_loss(activation_layers[-1], y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
 
@@ -104,7 +104,7 @@ def backpropagation(weights, activation_layers, y_true):
 
 def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
     #diff = np.power(activation_layers[-1] - y_true, 5)
-    diff = derivative_BC_loss(activation_layers[-1], y_true)
+    diff = derivative_BCE_loss(activation_layers[-1], y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
     delta_layers[0] = (delta_layers[0] * dropouts[-1]) / keep_rate
@@ -120,8 +120,8 @@ def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 300
-    hidden_size_2 = 300
+    hidden_size_1 = 50
+    # hidden_size_2 = 300
     output_size = 1
     learning_rate = 0.1
     epochs = 10000
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
     W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+    # W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
     W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
     N = y_train.size
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     train_errors2 = []
     test_errors2 = []
 
-    weights1 = [W1, W2, W3]
+    weights1 = [W1, W3]
     weights2 = copy.deepcopy(weights1)
 
     train_outs1 = []
