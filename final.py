@@ -57,7 +57,7 @@ for num_features in range(2, 30, 3):
     				print("For a learning rate of " + str(learning_rate) + "\n")
     				for epochs in [500, 2000, 4000, 8000, 10000]:
     					print("Epoch: " + str(epochs))
-						final_weights = train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train)
+						final_weights = train_model(copy.deepcopy(weights), keep_rate, learning_rate, epochs, x_train, y_train)
 						final_accuracy = accuracy(final_weights, x_test, y_test)
 						print("The final accuracy is: " + str(final_accuracy) + "\n")
 
