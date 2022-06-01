@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
@@ -22,6 +24,15 @@ def split_dataset():
 
     return x_train, x_test, y_train, y_test
 
+def pca(x_train, x_test, num_features):
+	X = x_train + x_test
+	scalar = StandardScaler()
+	X = scalar.fit_transform(X)
+	pca = PCA(n_components=num_features)
+	principalComponents = pca.fit_transform(X)
+	finalDf = pd.DataFrame(data=principalComponents,
+							   columns=[f"f{i}" for i in range(1, num_features + 1)])
+	return finalDf[:-TEST_SIZE], finalDf[-TEST_SIZE:]
 
 x_train_raw, x_test_raw, y_train, y_test = split_dataset()
 

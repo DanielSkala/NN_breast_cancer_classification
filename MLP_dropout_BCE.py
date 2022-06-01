@@ -58,6 +58,8 @@ def split_dataset():
     y_train = y_train.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
 
+    print(sum(y_test) + sum(y_train))
+
     return x_train, x_test, y_train, y_test
 
 
@@ -120,102 +122,119 @@ def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 50
+    hidden_sizes = [2, 4, 8, 16, 32, 64, 128]
     # hidden_size_2 = 300
     output_size = 1
     learning_rate = 0.1
     epochs = 10000
+    accuracies_wdrop = []
+    accuracies_drop = []
 
-    x_train, x_test, y_train, y_test = split_dataset()
+    for hidden_size_1 in hidden_sizes:
 
-    x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
-    x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
+        x_train, x_test, y_train, y_test = split_dataset()
 
-    W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-    W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+        x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
+        x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
-    N = y_train.size
+        W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+        # W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
-    train_errors1 = []
-    test_errors1 = []
-    train_errors2 = []
-    test_errors2 = []
+        N = y_train.size
 
-    weights1 = [W1, W3]
-    weights2 = copy.deepcopy(weights1)
+        train_errors1 = []
+        test_errors1 = []
+        train_errors2 = []
+        test_errors2 = []
 
-    train_outs1 = []
-    train_outs2 = []
-    test_outs1 = []
-    test_outs2 = []
+        weights1 = [W1, W3]
+        weights2 = copy.deepcopy(weights1)
 
-    start_time = time.time()
+        train_outs1 = []
+        train_outs2 = []
+        test_outs1 = []
+        test_outs2 = []
 
-    for i in range(epochs):
+        start_time = time.time()
 
-        # Feed forward
-        train_outs1 = feed_forward(weights1, x_train)
-        train_outs2, dropouts = feed_forward_dropout(weights2, x_train)
+        for i in range(epochs):
 
-        # Backpropagation
-        delta_layers1 = backpropagation(weights1, train_outs1, y_train)
-        delta_layers2 = backpropagation_dropout(weights2, train_outs2, y_train, dropouts)
+            # Feed forward
+            train_outs1 = feed_forward(weights1, x_train)
+            train_outs2, dropouts = feed_forward_dropout(weights2, x_train)
 
-        # Update weights
-        weights1[0] -= learning_rate * np.dot(x_train.T, delta_layers1[0]) / N
-        for i in range(1, len(weights1)):
-            weights1[i] -= learning_rate * np.dot(train_outs1[i - 1].T, delta_layers1[i]) / N
+            # Backpropagation
+            delta_layers1 = backpropagation(weights1, train_outs1, y_train)
+            delta_layers2 = backpropagation_dropout(weights2, train_outs2, y_train, dropouts)
 
-        weights2[0] -= learning_rate * np.dot(x_train.T, delta_layers2[0]) / N
-        for i in range(1, len(weights2)):
-            weights2[i] -= learning_rate * np.dot(train_outs2[i - 1].T, delta_layers2[i]) / N
+            # Update weights
+            weights1[0] -= learning_rate * np.dot(x_train.T, delta_layers1[0]) / N
+            for i in range(1, len(weights1)):
+                weights1[i] -= learning_rate * np.dot(train_outs1[i - 1].T, delta_layers1[i]) / N
 
-        # Calculate errors
-        train_errors1.append(normalized_mse(train_outs1[-1], y_train))
-        test_errors1.append(normalized_mse(feed_forward(weights1, x_test)[-1], y_test))
+            weights2[0] -= learning_rate * np.dot(x_train.T, delta_layers2[0]) / N
+            for i in range(1, len(weights2)):
+                weights2[i] -= learning_rate * np.dot(train_outs2[i - 1].T, delta_layers2[i]) / N
 
-        train_errors2.append(normalized_mse(train_outs2[-1], y_train))
-        test_errors2.append(normalized_mse(feed_forward(weights2, x_test)[-1], y_test))
+            # Calculate errors
+            train_errors1.append(normalized_mse(train_outs1[-1], y_train))
+            test_errors1.append(normalized_mse(feed_forward(weights1, x_test)[-1], y_test))
 
-    end_time = time.time()
+            train_errors2.append(normalized_mse(train_outs2[-1], y_train))
+            test_errors2.append(normalized_mse(feed_forward(weights2, x_test)[-1], y_test))
 
-    test_outs1 = feed_forward(weights1, x_test)
-    test_outs2 = feed_forward(weights2, x_test)
+        end_time = time.time()
 
-    print(test_outs2[-1])
+        test_outs1 = feed_forward(weights1, x_test)
+        test_outs2 = feed_forward(weights2, x_test)
 
-    acc = accuracy(test_outs1[-1], y_test)
+        print(test_outs2[-1])
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy Without DropOut: {}".format(acc))
+        acc = accuracy(test_outs1[-1], y_test)
+        accuracies_wdrop.append(acc)
 
-    acc = accuracy(test_outs2[-1], y_test)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy Without DropOut: {}".format(acc))
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy With DropOut: {}".format(acc))
+        acc = accuracy(test_outs2[-1], y_test)
+        accuracies_drop.append(acc)
 
-    # Density plot sns
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy With DropOut: {}".format(acc))
+
+    # # Density plot sns
+    # sns.set(style="whitegrid")
+    # sns.set(rc={"figure.figsize": (10, 6)})
+    # sns.set(font_scale=1.5)
+    # sns.kdeplot(test_outs1[-1].flatten(), label="Training1")
+    # sns.kdeplot(test_outs2[-1].flatten(), label="Training2")
+    # sns.kdeplot(y_test.flatten(), label="Test")
+    # plt.legend()
+    # plt.title("Density plot")
+    # plt.xlabel("Predicted")
+    # plt.ylabel("True")
+    # plt.show()
+    #
+    # # Train Test error plot
+    # sns.set(style="whitegrid")
+    # sns.set(rc={"figure.figsize": (10, 6)})
+    # sns.set(font_scale=1.5)
+    # sns.lineplot(x=range(epochs), y=train_errors1, label='Train1')
+    # sns.lineplot(x=range(epochs), y=test_errors1, label='Test1')
+    # sns.lineplot(x=range(epochs), y=train_errors2, label='Train2')
+    # sns.lineplot(x=range(epochs), y=test_errors2, label='Test2')
+    # plt.legend()
+    # plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
+    # plt.xlabel("Epochs")
+    # plt.ylabel("MSE")
+    # plt.show()
+
     sns.set(style="whitegrid")
     sns.set(rc={"figure.figsize": (10, 6)})
     sns.set(font_scale=1.5)
-    sns.kdeplot(test_outs1[-1].flatten(), label="Training1")
-    sns.kdeplot(test_outs2[-1].flatten(), label="Training2")
-    sns.kdeplot(y_test.flatten(), label="Test")
-    plt.legend()
-    plt.title("Density plot")
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-    plt.show()
-
-    # Train Test error plot
-    sns.set(style="whitegrid")
-    sns.set(rc={"figure.figsize": (10, 6)})
-    sns.set(font_scale=1.5)
-    sns.lineplot(x=range(epochs), y=train_errors1, label='Train1')
-    sns.lineplot(x=range(epochs), y=test_errors1, label='Test1')
-    sns.lineplot(x=range(epochs), y=train_errors2, label='Train2')
-    sns.lineplot(x=range(epochs), y=test_errors2, label='Test2')
+    sns.lineplot(x=hidden_sizes, y=range(0, 1), label='wdrop')
+    sns.lineplot(x=hidden_sizes, y=range(0,1), label='drop')
     plt.legend()
     plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
     plt.xlabel("Epochs")

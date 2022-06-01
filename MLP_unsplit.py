@@ -47,6 +47,8 @@ def split_dataset():
     x_train2, x_test2, y_train, y_test = train_test_split(x2, y, test_size=200, random_state=23)
     x_train3, x_test3, y_train, y_test = train_test_split(x2, y, test_size=200, random_state=23)
 
+    print(sum(y_train) + sum(y_test))
+
     y_train = y_train.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
 
@@ -110,166 +112,171 @@ def backpropagation_dropout(weights, activation_layers, y_true, dropouts):
 if __name__ == '__main__':
 
     input_size = NUM_FEATURES
-    hidden_size_1 = 7
+    # hidden_size_1 = 7
     # hidden_size_2 = 15
+    hidden_sizes = [2, 4, 8, 16, 32, 64, 128]
     output_size = 1
     learning_rate = 0.1
-    epochs = 5000
+    epochs = 10000
+    accuracies_wdrop = []
+    accuracies_drop = []
 
-    x_train1, x_test1, x_train2, x_test2, x_train3, x_test3, y_train, y_test = split_dataset()
+    for hidden_size_1 in hidden_sizes:
 
-    x_train1 = np.hstack((x_train1, np.ones((x_train1.shape[0], 1))))
-    x_test1 = np.hstack((x_test1, np.ones((x_test1.shape[0], 1))))
-    x_train2 = np.hstack((x_train2, np.ones((x_train2.shape[0], 1))))
-    x_test2 = np.hstack((x_test2, np.ones((x_test2.shape[0], 1))))
-    x_train3 = np.hstack((x_train3, np.ones((x_train3.shape[0], 1))))
-    x_test3 = np.hstack((x_test3, np.ones((x_test3.shape[0], 1))))
+        x_train1, x_test1, x_train2, x_test2, x_train3, x_test3, y_train, y_test = split_dataset()
 
-    W11 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W12 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-    W13 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
-    W21 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W22 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-    W23 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
-    W31 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-    # W32 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-    W33 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+        x_train1 = np.hstack((x_train1, np.ones((x_train1.shape[0], 1))))
+        x_test1 = np.hstack((x_test1, np.ones((x_test1.shape[0], 1))))
+        x_train2 = np.hstack((x_train2, np.ones((x_train2.shape[0], 1))))
+        x_test2 = np.hstack((x_test2, np.ones((x_test2.shape[0], 1))))
+        x_train3 = np.hstack((x_train3, np.ones((x_train3.shape[0], 1))))
+        x_test3 = np.hstack((x_test3, np.ones((x_test3.shape[0], 1))))
 
-    N = y_train.size
+        W11 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+        # W12 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W13 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+        W21 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+        # W22 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W23 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+        W31 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+        # W32 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W33 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
 
-    train_errors11 = []
-    test_errors11 = []
-    train_errors12 = []
-    test_errors12 = []
-    train_errors21 = []
-    test_errors21 = []
-    train_errors22 = []
-    test_errors22 = []
-    train_errors31 = []
-    test_errors31 = []
-    train_errors32 = []
-    test_errors32 = []
+        N = y_train.size
 
-    weights1 = [W11, W13]
-    weights2 = [W21, W23]
-    weights3 = [W31, W33]
-    weights1_copy = copy.deepcopy(weights1)
-    weights2_copy = copy.deepcopy(weights2)
-    weights3_copy = copy.deepcopy(weights3)
+        train_errors11 = []
+        test_errors11 = []
+        train_errors12 = []
+        test_errors12 = []
+        train_errors21 = []
+        test_errors21 = []
+        train_errors22 = []
+        test_errors22 = []
+        train_errors31 = []
+        test_errors31 = []
+        train_errors32 = []
+        test_errors32 = []
 
-    train_outs11 = []
-    train_outs12 = []
-    train_outs21 = []
-    train_outs22 = []
-    train_outs31 = []
-    train_outs32 = []
-    test_outs11 = []
-    test_outs12 = []
-    test_outs21 = []
-    test_outs22 = []
-    test_outs31 = []
-    test_outs32 = []
+        weights1 = [W11, W13]
+        weights2 = [W21, W23]
+        weights3 = [W31, W33]
+        weights1_copy = copy.deepcopy(weights1)
+        weights2_copy = copy.deepcopy(weights2)
+        weights3_copy = copy.deepcopy(weights3)
 
-    start_time = time.time()
+        train_outs11 = []
+        train_outs12 = []
+        train_outs21 = []
+        train_outs22 = []
+        train_outs31 = []
+        train_outs32 = []
+        test_outs11 = []
+        test_outs12 = []
+        test_outs21 = []
+        test_outs22 = []
+        test_outs31 = []
+        test_outs32 = []
 
-    for i in range(epochs):
+        start_time = time.time()
 
-        # Feed forward
-        train_outs11 = feed_forward(weights1, x_train1)
-        train_outs12, dropouts1 = feed_forward_dropout(weights1_copy, x_train1)
-        train_outs21 = feed_forward(weights2, x_train2)
-        train_outs22, dropouts2 = feed_forward_dropout(weights2_copy, x_train2)
-        train_outs31 = feed_forward(weights3, x_train3)
-        train_outs32, dropouts3 = feed_forward_dropout(weights3_copy, x_train3)
+        for i in range(epochs):
 
-        # Backpropagation
-        delta_layers11 = backpropagation(weights1, train_outs11, y_train)
-        delta_layers12 = backpropagation_dropout(weights1_copy, train_outs12, y_train, dropouts1)
-        delta_layers21 = backpropagation(weights2, train_outs21, y_train)
-        delta_layers22 = backpropagation_dropout(weights2_copy, train_outs22, y_train, dropouts2)
-        delta_layers31 = backpropagation(weights3, train_outs31, y_train)
-        delta_layers32 = backpropagation_dropout(weights3_copy, train_outs32, y_train, dropouts3)
+            # Feed forward
+            train_outs11 = feed_forward(weights1, x_train1)
+            train_outs12, dropouts1 = feed_forward_dropout(weights1_copy, x_train1)
+            train_outs21 = feed_forward(weights2, x_train2)
+            train_outs22, dropouts2 = feed_forward_dropout(weights2_copy, x_train2)
+            train_outs31 = feed_forward(weights3, x_train3)
+            train_outs32, dropouts3 = feed_forward_dropout(weights3_copy, x_train3)
 
-        # Update weights
-        weights1[0] -= learning_rate * np.dot(x_train1.T, delta_layers11[0]) / N
-        for i in range(1, len(weights1)):
-            weights1[i] -= learning_rate * np.dot(train_outs11[i - 1].T, delta_layers11[i]) / N
+            # Backpropagation
+            delta_layers11 = backpropagation(weights1, train_outs11, y_train)
+            delta_layers12 = backpropagation_dropout(weights1_copy, train_outs12, y_train, dropouts1)
+            delta_layers21 = backpropagation(weights2, train_outs21, y_train)
+            delta_layers22 = backpropagation_dropout(weights2_copy, train_outs22, y_train, dropouts2)
+            delta_layers31 = backpropagation(weights3, train_outs31, y_train)
+            delta_layers32 = backpropagation_dropout(weights3_copy, train_outs32, y_train, dropouts3)
 
-        weights1_copy[0] -= learning_rate * np.dot(x_train1.T, delta_layers12[0]) / N
-        for i in range(1, len(weights1_copy)):
-            weights1_copy[i] -= learning_rate * np.dot(train_outs12[i - 1].T, delta_layers12[i]) / N
+            # Update weights
+            weights1[0] -= learning_rate * np.dot(x_train1.T, delta_layers11[0]) / N
+            for i in range(1, len(weights1)):
+                weights1[i] -= learning_rate * np.dot(train_outs11[i - 1].T, delta_layers11[i]) / N
 
-        weights2[0] -= learning_rate * np.dot(x_train2.T, delta_layers21[0]) / N
-        for i in range(1, len(weights2)):
-            weights2[i] -= learning_rate * np.dot(train_outs21[i - 1].T, delta_layers21[i]) / N
+            weights1_copy[0] -= learning_rate * np.dot(x_train1.T, delta_layers12[0]) / N
+            for i in range(1, len(weights1_copy)):
+                weights1_copy[i] -= learning_rate * np.dot(train_outs12[i - 1].T, delta_layers12[i]) / N
 
-        weights2_copy[0] -= learning_rate * np.dot(x_train2.T, delta_layers22[0]) / N
-        for i in range(1, len(weights2_copy)):
-            weights2_copy[i] -= learning_rate * np.dot(train_outs22[i - 1].T, delta_layers22[i]) / N
+            weights2[0] -= learning_rate * np.dot(x_train2.T, delta_layers21[0]) / N
+            for i in range(1, len(weights2)):
+                weights2[i] -= learning_rate * np.dot(train_outs21[i - 1].T, delta_layers21[i]) / N
 
-        weights3[0] -= learning_rate * np.dot(x_train3.T, delta_layers31[0]) / N
-        for i in range(1, len(weights3)):
-            weights3[i] -= learning_rate * np.dot(train_outs31[i - 1].T, delta_layers31[i]) / N
+            weights2_copy[0] -= learning_rate * np.dot(x_train2.T, delta_layers22[0]) / N
+            for i in range(1, len(weights2_copy)):
+                weights2_copy[i] -= learning_rate * np.dot(train_outs22[i - 1].T, delta_layers22[i]) / N
 
-        weights3_copy[0] -= learning_rate * np.dot(x_train3.T, delta_layers32[0]) / N
-        for i in range(1, len(weights3_copy)):
-            weights3_copy[i] -= learning_rate * np.dot(train_outs32[i - 1].T, delta_layers32[i]) / N
+            weights3[0] -= learning_rate * np.dot(x_train3.T, delta_layers31[0]) / N
+            for i in range(1, len(weights3)):
+                weights3[i] -= learning_rate * np.dot(train_outs31[i - 1].T, delta_layers31[i]) / N
 
-        # Calculate errors
-        train_errors11.append(normalized_mse(train_outs11[-1], y_train))
-        test_errors11.append(normalized_mse(feed_forward(weights1, x_test1)[-1], y_test))
-        train_errors21.append(normalized_mse(train_outs21[-1], y_train))
-        test_errors21.append(normalized_mse(feed_forward(weights2, x_test2)[-1], y_test))
-        train_errors31.append(normalized_mse(train_outs31[-1], y_train))
-        test_errors31.append(normalized_mse(feed_forward(weights3, x_test3)[-1], y_test))
+            weights3_copy[0] -= learning_rate * np.dot(x_train3.T, delta_layers32[0]) / N
+            for i in range(1, len(weights3_copy)):
+                weights3_copy[i] -= learning_rate * np.dot(train_outs32[i - 1].T, delta_layers32[i]) / N
 
-        train_errors12.append(normalized_mse(train_outs12[-1], y_train))
-        test_errors12.append(normalized_mse(feed_forward(weights1_copy, x_test1)[-1], y_test))
-        train_errors22.append(normalized_mse(train_outs22[-1], y_train))
-        test_errors22.append(normalized_mse(feed_forward(weights2_copy, x_test2)[-1], y_test))
-        train_errors32.append(normalized_mse(train_outs32[-1], y_train))
-        test_errors32.append(normalized_mse(feed_forward(weights3_copy, x_test3)[-1], y_test))
+            # Calculate errors
+            train_errors11.append(normalized_mse(train_outs11[-1], y_train))
+            test_errors11.append(normalized_mse(feed_forward(weights1, x_test1)[-1], y_test))
+            train_errors21.append(normalized_mse(train_outs21[-1], y_train))
+            test_errors21.append(normalized_mse(feed_forward(weights2, x_test2)[-1], y_test))
+            train_errors31.append(normalized_mse(train_outs31[-1], y_train))
+            test_errors31.append(normalized_mse(feed_forward(weights3, x_test3)[-1], y_test))
 
-    end_time = time.time()
+            train_errors12.append(normalized_mse(train_outs12[-1], y_train))
+            test_errors12.append(normalized_mse(feed_forward(weights1_copy, x_test1)[-1], y_test))
+            train_errors22.append(normalized_mse(train_outs22[-1], y_train))
+            test_errors22.append(normalized_mse(feed_forward(weights2_copy, x_test2)[-1], y_test))
+            train_errors32.append(normalized_mse(train_outs32[-1], y_train))
+            test_errors32.append(normalized_mse(feed_forward(weights3_copy, x_test3)[-1], y_test))
 
-    test_outs11 = feed_forward(weights1, x_test1)
-    test_outs12 = feed_forward(weights1_copy, x_test1)
-    test_outs21 = feed_forward(weights2, x_test2)
-    test_outs22 = feed_forward(weights2_copy, x_test2)
-    test_outs31 = feed_forward(weights3, x_test3)
-    test_outs32 = feed_forward(weights3_copy, x_test3)
+        end_time = time.time()
 
-    # print(test_outs2[-1])
+        test_outs11 = feed_forward(weights1, x_test1)
+        test_outs12 = feed_forward(weights1_copy, x_test1)
+        test_outs21 = feed_forward(weights2, x_test2)
+        test_outs22 = feed_forward(weights2_copy, x_test2)
+        test_outs31 = feed_forward(weights3, x_test3)
+        test_outs32 = feed_forward(weights3_copy, x_test3)
 
-    means_acc_wdrop = accuracy(test_outs11[-1], y_test)
+        # print(test_outs2[-1])
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 1 Without DropOut: {}".format(means_acc_wdrop))
+        means_acc_wdrop = accuracy(test_outs11[-1], y_test)
+        accuracies_wdrop.append(means_acc_wdrop)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 1 Without DropOut: {}".format(means_acc_wdrop))
 
-    means_acc_drop = accuracy(test_outs12[-1], y_test)
+        means_acc_drop = accuracy(test_outs12[-1], y_test)
+        accuracies_drop.append(means_acc_drop)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 1 With DropOut: {}".format(means_acc_drop))
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 1 With DropOut: {}".format(means_acc_drop))
+        sds_acc_wdrop = accuracy(test_outs21[-1], y_test)
 
-    sds_acc_wdrop = accuracy(test_outs21[-1], y_test)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 2 Without DropOut: {}".format(sds_acc_wdrop))
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 2 Without DropOut: {}".format(sds_acc_wdrop))
+        sds_acc_drop = accuracy(test_outs22[-1], y_test)
 
-    sds_acc_drop = accuracy(test_outs22[-1], y_test)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 2 With DropOut: {}".format(sds_acc_drop))
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 2 With DropOut: {}".format(sds_acc_drop))
+        worst_acc_wdrop = accuracy(test_outs31[-1], y_test)
 
-    worst_acc_wdrop = accuracy(test_outs31[-1], y_test)
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 3 Without DropOut: {}".format(worst_acc_wdrop))
 
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 3 Without DropOut: {}".format(worst_acc_wdrop))
+        worst_acc_drop = accuracy(test_outs32[-1], y_test)
 
-    worst_acc_drop = accuracy(test_outs32[-1], y_test)
-
-    print(f"Time: {round(end_time - start_time, 2)}s")
-    print("Accuracy 3 With DropOut: {}".format(worst_acc_drop))
+        print(f"Time: {round(end_time - start_time, 2)}s")
+        print("Accuracy 3 With DropOut: {}".format(worst_acc_drop))
 
     # Density plot sns
     # sns.set(style="whitegrid")
@@ -297,3 +304,16 @@ if __name__ == '__main__':
     # plt.xlabel("Epochs")
     # plt.ylabel("MSE")
     # plt.show()
+
+    # sns.set(style="whitegrid")
+    # sns.set(rc={"figure.figsize": (10, 6)})
+    # sns.set(font_scale=1.5)
+    # sns.pointplot(x=hidden_sizes, y=[0, 1], data=accuracies_wdrop)
+    # sns.pointplot(x="time", y="total_bill", data=accuracies_drop)
+    plt.scatter(x=hidden_sizes, y=[accuracies_wdrop])
+    plt.scatter(x=hidden_sizes, y=[accuracies_drop], c="red")
+    plt.legend()
+    # plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
+    plt.xlabel("Hidden Sizes")
+    plt.ylabel("Accuracy")
+    plt.show()

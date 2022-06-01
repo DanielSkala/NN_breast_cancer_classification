@@ -40,7 +40,9 @@ def split_dataset():
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=200, random_state=23)
 
     y_train = y_train.reshape(-1, 1)
+
     y_test = y_test.reshape(-1, 1)
+    print(sum(y_test) + sum(y_train))
 
     return x_train, x_test, y_train, y_test
 
