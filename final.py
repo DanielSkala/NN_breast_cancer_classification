@@ -1,0 +1,84 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+import time
+import copy
+
+TEST_SIZE = 57
+
+def split_dataset():
+    df = pd.read_csv('databases/wdbc_unsplit_norm.csv')
+    #df = pca(df, NUM_FEATURES)  # Reducing dimensions
+    y = pd.get_dummies(df.label).values
+    y = y[:, 1]
+    x = df.drop('label', 1)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=23)
+
+    y_train = y_train.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+
+    return x_train, x_test, y_train, y_test
+
+
+x_train_raw, x_test_raw, y_train, y_test = split_dataset()
+
+for num_features in range(1, 30):
+	x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
+	for hidden_size_1 in range(1, 50):
+		for hidden_size_2 in range(0, 50):
+			if hidden_size_1 == 0:
+				W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
+    			W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
+    			weights = [W1, W2]
+    		else:
+    			W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+    			W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+    			W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+    			weights = [W1, W2, W3]
+    		print("*****************************************")
+    		print("\nFor a two layer NN with first layer being of " +  str(hidden_size_1) + " neurons and the second layer being of " +  str(hidden_size_2) + " neurons:\n")
+    		for keep_rate in range(0.8, 1, 0.05):
+    			print("For a keep_rate of " + str(keep_rate) + " :\n")
+    			for learning_rate in []:
+    				print("For a learning rate of " + str(learning_rate) + "\n")
+    				final_weights = n_fold_cross_validation(weights, keep_rate, learning_rate, 10, x_train, y_train)
+    				final_accuracy = accuracy(final_weights, x_test, y_test)
+    				print("The final accuracy is: " + str(final_accuracy) + "\n")
+
+print("######################################")
+print("######################################")
+print("######################################")
+print("ITS TRANSFER TIME!!!!")
+
+for num_features in range(1, 30):
+	do PCA 
+	do split
+	for hidden_size in range(0, 50):
+		if hidden_size_1 == 0:
+			W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
+    		W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
+    		weights = [W1, W2]
+    	else:
+    		W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+    		W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+    		W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+    		weights = [W1, W2, W3]
+    	print("*****************************************")
+    	print("\nFor a two layer NN with first layer being of " +  str(hidden_size_1) + " neurons and the second layer being of " +  str(hidden_size_2) + " neurons:\n")
+    	for keep_rate in range(0.8, 1, 0.05):
+    		print("For a keep_rate of " + str(keep_rate) + " :\n")
+    		for learning_rate in []:
+    			print("For a learning rate of " + str(learning_rate) + "\n")
+    			final_weights = n_fold_cross_validation(weights, keep_rate, learning_rate, 10, x_train, y_train)
+    			final_accuracy = accuracy(final_weights, x_test, y_test)
+    			print("The final accuracy is: " + str(final_accuracy) + "\n")
+
+
+
+do split again in 4
+	do train for best hidden + dropout again
+	do transfer
+	
