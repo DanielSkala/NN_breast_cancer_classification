@@ -8,6 +8,7 @@ import seaborn as sns
 import warnings
 import time
 import copy
+from joblib import Parallel, delayed
 
 TEST_SIZE = 57
 
@@ -74,7 +75,8 @@ def backpropagation(weights, activation_layers, y_true, dropouts, keep_rate):
     return delta_layers
 
 
-def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train, N):
+def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
+    N = y_train.size
     for i in range(epochs):
         train_outs, dropouts = feed_forward(weights, x_train, keep_rate)
 
@@ -89,32 +91,44 @@ def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train, N):
     return weights
 
 
-for num_features in range(2, 30, 3):
+def process(test_case, x_train, x_test, y_train, y_test, num_features):
+    hidden_size_1 = test_case[0]
+    hidden_size_2 = test_case[1]
+    keep_rate = test_case[2]
+    learning_rate = test_case[3]
+    epochs = test_case[4]
+    if hidden_size_2 == 0:
+            W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
+            W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
+            weights = [W1, W2]
+    else:
+        W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
+        W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
+        weights = [W1, W2, W3]
+    final_weights = train_model(weights, keep_rate, learning_rate, epochs, x_train,
+                                                    y_train)
+    final_accuracy = accuracy(final_weights, x_test, y_test)
+    print_results(final_accuracy, test_case, num_features)
+
+
+
+
+hidden_size_1_arr = [1, 2, 4, 8, 16, 32]
+hidden_size_2_arr = [0, 1, 2, 4, 8, 16, 32]
+keep_rate_arr = [0.95, 1]
+learning_rate_arr = [0.01, 0.1, 0.2]
+epochs_arr = [2000, 4000, 8000]
+combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_size_2_arr for kr in keep_rate_arr for lr in learning_rate_arr for e in epochs_arr]
+
+
+
+
+for num_features in [2, 5, 10, 30]:
     x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
-    for hidden_size_1 in [1, 2, 4, 8, 16, 32]:
-        for hidden_size_2 in [0, 1, 2, 4, 8, 16, 32]:
-            if hidden_size_1 == 0:
-                W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
-                W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
-                weights = [W1, W2]
-            else:
-                W1 = np.random.normal(scale=0.1, size=(input_size + 1, hidden_size_1))
-                W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-                W3 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, output_size))
-                weights = [W1, W2, W3]
-            print("*****************************************")
-            print("\nFor a two layer NN with first layer being of " + str(
-                hidden_size_1) + " neurons and the second layer being of " + str(hidden_size_2) + " neurons:\n")
-            for keep_rate in range(0.8, 1, 0.05):
-                print("For a keep_rate of " + str(keep_rate) + " :\n")
-                for learning_rate in [0.01, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3]:
-                    print("For a learning rate of " + str(learning_rate) + "\n")
-                    for epochs in [500, 2000, 4000, 8000, 10000]:
-                        print("Epoch: " + str(epochs))
-                        final_weights = train_model(copy.deepcopy(weights), keep_rate, learning_rate, epochs, x_train,
-                                                    y_train, y_train.size)
-                        final_accuracy = accuracy(final_weights, x_test, y_test)
-                        print("The final accuracy is: " + str(final_accuracy) + "\n")
+    results = Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
+
+
 
 print("######################################")
 print("######################################")
