@@ -57,13 +57,27 @@ def feed_forward(weights, inputs, keep_rate):
         activation_layers[i - 1] = np.hstack((activation_layers[i - 1], np.ones((activation_layers[i - 1].shape[0], 1))))
         activation_layer = sigmoid(np.dot(activation_layers[i - 1], weights[i]))
         dropout = np.random.rand(activation_layer.shape[0], activation_layer.shape[1]) < keep_rate
+        if i == len(weights) - 1:
+        	potential = (np.dot(activation_layers[i - 1], weights[i]) * dropout) / keep_rate
         activation_layer = (activation_layer * dropout) / keep_rate
         activation_layers.append(activation_layer)
         dropouts.append(dropout)
-    return activation_layers, dropouts
+    return activation_layers, dropouts, potential
 
+def derivative_loss(y_pred, potential, y_true):
+	if y_pred == 0 or y_pred == 1:
+		return 100*(y_pred - y_true)
+	else:
+		return (y_true - 1 - sigmoid(-potential))*(1/(y_pred*(1 - y_pred)))
 
-def backpropagation(weights, activation_layers, y_true, dropouts, keep_rate):
+def derivative_loss_array(y_pred, potential, y_true):
+	ret_arr = np.zeros(y_pred.shape)
+	for i in range(y_pred.shape[0]):
+		ret_arr[i] = derivative_loss(y_pred[i], potential[i], y_true[i])
+	return ret_arr
+
+def backpropagation(weights, activation_layers, potential, y_true, dropouts, keep_rate):
+    #diff = derivative_loss_array(activation_layers[-1], potential, y_true)
     diff = (activation_layers[-1] - y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
@@ -80,10 +94,10 @@ def backpropagation(weights, activation_layers, y_true, dropouts, keep_rate):
 def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
     N = y_train.size
     for i in range(epochs):
-        train_outs, dropouts = feed_forward(weights, x_train, keep_rate)
+        train_outs, dropouts, potential = feed_forward(weights, x_train, keep_rate)
 
         # Backpropagation
-        delta_layers = backpropagation(weights, train_outs, y_train, dropouts, keep_rate)
+        delta_layers = backpropagation(weights, train_outs, potential, y_train, dropouts, keep_rate)
 
         # Update weights
         weights[0] -= learning_rate * np.dot(x_train.T, delta_layers[0]) / N
@@ -93,7 +107,7 @@ def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
     return weights
 
 def accuracy(weights, x_test, y_test):
-    activation_layers, dropout = feed_forward(weights, x_test, 1)
+    activation_layers, dropout, potential = feed_forward(weights, x_test, 1)
     hit_pred = activation_layers[-1] >= 0.5
     hit_true = y_test >= 0.5
     return (hit_pred == hit_true).sum() / y_test.size
@@ -124,21 +138,21 @@ def process(test_case, x_train, x_test, y_train, y_test, num_features):
 
 
 
-hidden_size_1_arr = [2, 4, 8]
-hidden_size_2_arr = [0, 2, 4]
+hidden_size_1_arr = [10]
+hidden_size_2_arr = [4]
 keep_rate_arr = [0.95, 1]
 learning_rate_arr = [0.01, 0.1]
 epochs_arr = [2000, 4000]
 combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_size_2_arr for kr in keep_rate_arr for lr in learning_rate_arr for e in epochs_arr]
 
 
-for num_features in [2, 5]:
+for num_features in [30]:
     x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
     x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
-    Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
-    #for test_case in combined:
-        #process(test_case, x_train, x_test, y_train, y_test, num_features) 
+    #Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
+    for test_case in combined:
+        process(test_case, x_train, x_test, y_train, y_test, num_features) 
 
 
 
