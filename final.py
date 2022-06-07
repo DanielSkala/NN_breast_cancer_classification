@@ -19,7 +19,7 @@ def split_dataset():
     y = pd.get_dummies(df.label).values
     y = y[:, 1]
     x = df.drop('label', 1)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=23)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=90)
 
     y_train = y_train.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
@@ -66,9 +66,9 @@ def feed_forward(weights, inputs, keep_rate):
 
 def derivative_loss(y_pred, potential, y_true):
 	if y_pred == 0 or y_pred == 1:
-		return 100*(y_pred - y_true)
+		return (y_pred - y_true)
 	else:
-		return (y_true - 1 - sigmoid(-potential))*(1/(y_pred*(1 - y_pred)))
+		return (1 - y_true - sigmoid(-potential))*(1/(y_pred*(1 - y_pred)))
 
 def derivative_loss_array(y_pred, potential, y_true):
 	ret_arr = np.zeros(y_pred.shape)
@@ -76,9 +76,17 @@ def derivative_loss_array(y_pred, potential, y_true):
 		ret_arr[i] = derivative_loss(y_pred[i], potential[i], y_true[i])
 	return ret_arr
 
+# #def derivative_loss_array(y_pred, potential, y_true):
+#     ret_arr = np.zeros(y_pred.shape)
+#     mask = (y_pred == 0) / (y_pred == 1)
+#     ret_arr[mask] = 100 * (y_pred[mask] - y_true[mask])
+#     ret_arr[~mask] = (y_true[~mask] - 1 - sigmoid(-potential[~mask]))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
+
+
+
 def backpropagation(weights, activation_layers, potential, y_true, dropouts, keep_rate):
-    #diff = derivative_loss_array(activation_layers[-1], potential, y_true)
-    diff = (activation_layers[-1] - y_true)
+    diff = derivative_loss_array(activation_layers[-1], potential, y_true)
+    #diff = (activation_layers[-1] - y_true)
     dot_one = activation_layers[-1] * diff
     delta_layers = [dot_one * (1 - activation_layers[-1])]
     delta_layers[0] = (delta_layers[0] * dropouts[-1]) / keep_rate
@@ -89,7 +97,6 @@ def backpropagation(weights, activation_layers, potential, y_true, dropouts, kee
         delta_layers.append(a * (dropouts[-1] / keep_rate) * b[:, :-1])
     delta_layers.reverse()
     return delta_layers
-
 
 def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
     N = y_train.size
@@ -106,11 +113,12 @@ def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
 
     return weights
 
+
 def accuracy(weights, x_test, y_test):
     activation_layers, dropout, potential = feed_forward(weights, x_test, 1)
-    hit_pred = activation_layers[-1] >= 0.5
-    hit_true = y_test >= 0.5
-    return (hit_pred == hit_true).sum() / y_test.size
+    mask = y_test == 1
+    correct = (activation_layers[-1][mask] >= 0.9).sum() + (activation_layers[-1][~mask] <= 0.1).sum()
+    return correct/y_test.size
 
 def print_results(accuracy, test_case, num_features):
     print("\n**********************************\nFirst Layer: " + str(test_case[0]) + "\nSecond Layer: " + str(test_case[1]) + "\nKeep Rate of: " + str(test_case[2]) + "\nLearning Rate of: " + str(test_case[3]) + "\nEpoch: " + str(test_case[4]) + "\nAn Accuracy of " + str(round(accuracy, 3)) + " was archieved with " + str(num_features) + " Features\n")
@@ -153,7 +161,7 @@ for num_features in [30]:
     #Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
     for test_case in combined:
         process(test_case, x_train, x_test, y_train, y_test, num_features) 
-
+    #process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, num_features) 
 
 
 print("######################################")
