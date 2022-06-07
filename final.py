@@ -80,7 +80,7 @@ def derivative_loss_array(y_pred, potential, y_true):
    ret_arr = np.zeros(y_pred.shape)
    mask = (y_pred == 0) | (y_pred == 1)
    ret_arr[mask] = 100 * (y_pred[mask] - y_true[mask])
-   ret_arr[~mask] = (y_true[~mask] - 1 - sigmoid(-potential[~mask]))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
+   ret_arr[~mask] = (1 - y_true[~mask]- sigmoid(-potential[~mask]))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
    return ret_arr
 
 
@@ -158,12 +158,7 @@ x_train, x_test = pca(x_train_raw, x_test_raw, 15)
 x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
 x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
-with cProfile.Profile() as pr:
-    process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, 15) 
-
-stats = pstats.Stats(pr)
-stats.sort_stats(pstats.SortKey.TIME)
-stats.print_stats()
+process((10, 10, 0.95, 0.3, 10000), x_train, x_test, y_train, y_test, 15) 
 
 
 
