@@ -79,7 +79,7 @@ def feed_forward(weights, inputs, keep_rate):
 def derivative_loss_array(y_pred, potential, y_true):
    ret_arr = np.zeros(y_pred.shape)
    mask = (y_pred == 0) | (y_pred == 1)
-   ret_arr[mask] = 100 * (y_pred[mask] - y_true[mask])
+   ret_arr[mask] = y_pred[mask] - y_true[mask]
    ret_arr[~mask] = (1 - y_true[~mask]- sigmoid(-potential[~mask]))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
    return ret_arr
 
@@ -118,7 +118,7 @@ def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train):
 def accuracy(weights, x_test, y_test):
     activation_layers, dropout, potential = feed_forward(weights, x_test, 1)
     mask = y_test == 1
-    correct = (activation_layers[-1][mask] >= 0.9).sum() + (activation_layers[-1][~mask] <= 0.1).sum()
+    correct = (activation_layers[-1][mask] >= 0.7).sum() + (activation_layers[-1][~mask] <= 0.3).sum()
     return correct/y_test.size
 
 def print_results(accuracy, test_case, num_features):
@@ -147,29 +147,29 @@ def process(test_case, x_train, x_test, y_train, y_test, num_features):
 
 
 
-hidden_size_1_arr = [10]
-hidden_size_2_arr = [4]
+hidden_size_1_arr = [2,4,8,16,32]
+hidden_size_2_arr = [0,2, 4, 8]
 keep_rate_arr = [0.95, 1]
-learning_rate_arr = [0.01, 0.1]
-epochs_arr = [2000, 4000]
+learning_rate_arr = [0.01, 0.1, 0.3]
+epochs_arr = [2000, 4000, 8000, 20000]
 combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_size_2_arr for kr in keep_rate_arr for lr in learning_rate_arr for e in epochs_arr]
 
-x_train, x_test = pca(x_train_raw, x_test_raw, 15)
-x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
-x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
+# x_train, x_test = pca(x_train_raw, x_test_raw, 15)
+# x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
+# x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
 
-process((10, 10, 0.95, 0.3, 10000), x_train, x_test, y_train, y_test, 15) 
+# process((10, 10, 0.95, 0.3, 10000), x_train, x_test, y_train, y_test, 15) 
 
 
 
-# for num_features in [30]:
-#     x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
-#     x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
-#     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
-#     #Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
-#     for test_case in combined:
-#         process(test_case, x_train, x_test, y_train, y_test, num_features) 
-#     process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, num_features) 
+for num_features in [30]:
+    x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
+    x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
+    x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
+    Parallel(n_jobs=1)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
+    # for test_case in combined:
+    #     process(test_case, x_train, x_test, y_train, y_test, num_features) 
+    # process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, num_features) 
 
 
 print("######################################")
