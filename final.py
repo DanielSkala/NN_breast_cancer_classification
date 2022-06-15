@@ -76,11 +76,13 @@ def feed_forward(weights, inputs, keep_rate):
 # 		ret_arr[i] = derivative_loss(y_pred[i], potential[i], y_true[i])
 # 	return ret_arr
 
+
+# 1/e^z − 1
 def derivative_loss_array(y_pred, potential, y_true):
    ret_arr = np.zeros(y_pred.shape)
    mask = (y_pred == 0) | (y_pred == 1)
-   ret_arr[mask] = y_pred[mask] - y_true[mask]
-   ret_arr[~mask] = (1 - y_true[~mask]- sigmoid(-potential[~mask]))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
+   ret_arr[mask] = 100*(y_pred[mask] - y_true[mask])
+   ret_arr[~mask] = (1 - y_true[~mask] + 1/(np.exp(potential[~mask]) - 1))*(1/(y_pred[~mask]*(1 - y_pred[~mask])))
    return ret_arr
 
 
@@ -162,11 +164,11 @@ combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_siz
 
 
 
-for num_features in [30]:
+for num_features in [2]:
     x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
     x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
     x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
-    Parallel(n_jobs=1)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
+    Parallel(n_jobs=4)(delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for test_case in combined)
     # for test_case in combined:
     #     process(test_case, x_train, x_test, y_train, y_test, num_features) 
     # process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, num_features) 
