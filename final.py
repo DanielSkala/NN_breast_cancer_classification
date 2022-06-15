@@ -1,18 +1,13 @@
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import seaborn as sns
 import warnings
-import time
-import copy
-from joblib import Parallel, delayed
-import cProfile
-import pstats
 
-TEST_SIZE = 57
+import numpy as np
+import pandas as pd
+from joblib import Parallel, delayed
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+TEST_SIZE = 100
 
 
 def split_dataset():
@@ -78,11 +73,13 @@ def feed_forward(weights, inputs, keep_rate):
 # 		ret_arr[i] = derivative_loss(y_pred[i], potential[i], y_true[i])
 # 	return ret_arr
 
+
+# 1/e^z − 1
 def derivative_loss_array(y_pred, potential, y_true):
     ret_arr = np.zeros(y_pred.shape)
     mask = (y_pred == 0) | (y_pred == 1)
-    ret_arr[mask] = y_pred[mask] - y_true[mask]
-    ret_arr[~mask] = (1 - y_true[~mask] - sigmoid(-potential[~mask])) * (
+    ret_arr[mask] = 100 * (y_pred[mask] - y_true[mask])
+    ret_arr[~mask] = (1 - y_true[~mask] + 1 / (np.exp(potential[~mask]) - 1)) * (
             1 / (y_pred[~mask] * (1 - y_pred[~mask])))
     return ret_arr
 
@@ -135,28 +132,27 @@ def print_results(accuracy, test_case, num_features):
         round(accuracy, 3)) + " was archieved with " + str(num_features) + " Features\n")
 
 
+def process(test_case, x_train, x_test, y_train, y_test, num_features):
+    hidden_size_1 = test_case[0]
+    hidden_size_2 = test_case[1]
+    keep_rate = test_case[2]
+    learning_rate = test_case[3]
+    epochs = test_case[4]
+    if hidden_size_2 == 0:
+        W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
+        W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
+        weights = [W1, W2]
+    else:
+        W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
+        W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
+        W3 = np.random.normal(scale=0.1, size=(hidden_size_2 + 1, 1))
+        weights = [W1, W2, W3]
+    final_weights = train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train)
+    final_accuracy = accuracy(final_weights, x_test, y_test)
+    print_results(final_accuracy, test_case, num_features)
+
+
 if __name__ == '__main__':
-
-    def process(test_case, x_train, x_test, y_train, y_test, num_features):
-        hidden_size_1 = test_case[0]
-        hidden_size_2 = test_case[1]
-        keep_rate = test_case[2]
-        learning_rate = test_case[3]
-        epochs = test_case[4]
-        if hidden_size_2 == 0:
-            W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
-            W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, 1))
-            weights = [W1, W2]
-        else:
-            W1 = np.random.normal(scale=0.1, size=(num_features + 1, hidden_size_1))
-            W2 = np.random.normal(scale=0.1, size=(hidden_size_1 + 1, hidden_size_2))
-            W3 = np.random.normal(scale=0.1, size=(hidden_size_2 + 1, 1))
-            weights = [W1, W2, W3]
-        final_weights = train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train)
-        final_accuracy = accuracy(final_weights, x_test, y_test)
-        print_results(final_accuracy, test_case, num_features)
-
-
     hidden_size_1_arr = [2, 4, 8, 16, 32]
     hidden_size_2_arr = [0, 2, 4, 8]
     keep_rate_arr = [0.95, 1]
@@ -172,12 +168,14 @@ if __name__ == '__main__':
 
     # process((10, 10, 0.95, 0.3, 10000), x_train, x_test, y_train, y_test, 15)
 
-    for num_features in [30]:
+    for num_features in [2, 5, 7, 10, 15, 20, 30]:
         x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
         x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
         x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
-        Parallel(n_jobs=8)(delayed(process)(test_case, x_train, x_test, y_train, y_test,
-                                            num_features) for test_case in combined)
+        Parallel(n_jobs=10)(
+            delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for
+            test_case
+            in combined)
         # for test_case in combined:
         #     process(test_case, x_train, x_test, y_train, y_test, num_features)
         # process((10, 10, 0.95, 0.3, 2000), x_train, x_test, y_train, y_test, num_features)
@@ -186,5 +184,3 @@ if __name__ == '__main__':
     print("######################################")
     print("######################################")
     print("ITS TRANSFER TIME!!!!")
-
-    # do transfer

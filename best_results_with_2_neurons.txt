@@ -1,0 +1,41 @@
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 0.95
+Learning Rate of: 0.3
+Epoch: 8000
+An Accuracy of 0.965 was archieved with 10 Features
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 0.95
+Learning Rate of: 0.3
+Epoch: 20000
+An Accuracy of 0.965 was archieved with 10 Features
+
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 1
+Learning Rate of: 0.3
+Epoch: 2000
+An Accuracy of 0.965 was archieved with 10 Features
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 0.95
+Learning Rate of: 0.1
+Epoch: 20000
+An Accuracy of 0.965 was archieved with 10 Features
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 2000
+An Accuracy of 0.965 was archieved with 10 Features
