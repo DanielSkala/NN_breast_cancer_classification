@@ -4,7 +4,7 @@ if __name__ == '__main__':
     new_str3 = str()
     i = 1
     k = 1
-    with open('databases/wdbc_split_norm.csv', 'r') as f:
+    with open('databases/wdbc_split.csv', 'r') as f:
         for line in f:
             if i == 1:
                 i += 1
