@@ -79,8 +79,9 @@ def derivative_loss_array(y_pred, potential, y_true):
     ret_arr = np.zeros(y_pred.shape)
     mask = (y_pred == 0) | (y_pred == 1)
     ret_arr[mask] = 100 * (y_pred[mask] - y_true[mask])
-    ret_arr[~mask] = (1 - y_true[~mask] + 1 / (np.exp(potential[~mask]) - 1)) * (
+    ret_arr[~mask] = (1 - y_true[~mask] - sigmoid(-potential[~mask])) * (
             1 / (y_pred[~mask] * (1 - y_pred[~mask])))
+    print(np.linalg.norm(ret_arr))
     return ret_arr
 
 
@@ -149,15 +150,17 @@ def process(test_case, x_train, x_test, y_train, y_test, num_features):
         weights = [W1, W2, W3]
     final_weights = train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train)
     final_accuracy = accuracy(final_weights, x_test, y_test)
+    activation_layers, dropout, potential = feed_forward(weights, x_test, 1)
+    print(activation_layers[-1])
     print_results(final_accuracy, test_case, num_features)
 
 
 if __name__ == '__main__':
-    hidden_size_1_arr = [2, 4, 8, 16, 32]
-    hidden_size_2_arr = [0, 2, 4, 8]
-    keep_rate_arr = [0.95, 1]
-    learning_rate_arr = [0.01, 0.1, 0.3]
-    epochs_arr = [2000, 4000, 8000, 20000]
+    hidden_size_1_arr = [2]
+    hidden_size_2_arr = [8]
+    keep_rate_arr = [0.95]
+    learning_rate_arr = [0.01]
+    epochs_arr = [20000]
     combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_size_2_arr for kr
                 in
                 keep_rate_arr for lr in learning_rate_arr for e in epochs_arr]
@@ -168,7 +171,7 @@ if __name__ == '__main__':
 
     # process((10, 10, 0.95, 0.3, 10000), x_train, x_test, y_train, y_test, 15)
 
-    for num_features in [2, 5, 7, 10, 15, 20, 30]:
+    for num_features in [5]:
         x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
         x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
         x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
