@@ -175,7 +175,7 @@ if __name__ == '__main__':
         x_train, x_test = pca(x_train_raw, x_test_raw, num_features)
         x_train = np.hstack((x_train, np.ones((x_train.shape[0], 1))))
         x_test = np.hstack((x_test, np.ones((x_test.shape[0], 1))))
-        Parallel(n_jobs=10)(
+        Parallel(n_jobs=12)(
             delayed(process)(test_case, x_train, x_test, y_train, y_test, num_features) for
             test_case
             in combined)

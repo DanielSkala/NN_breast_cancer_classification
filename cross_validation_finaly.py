@@ -162,9 +162,9 @@ def process_K_fold(test_case, x_train, x_test, y_train, y_test, num_features):
 
 def transfer_test(x, y, test_case, num_features):
 
-    x_train, x_test, y_train, y_test  = train_test_split(x, y, test_size=TEST_SIZE, random_state=23)
+    x_train, x_test, y_train, y_test  = train_test_split(x, y, test_size=TEST_SIZE, random_state=33)
 
-    x_first, x_second, y_first, y_second = train_test_split(x_train, y_train, test_size=TEST_SIZE*2, random_state=23)
+    x_first, x_second, y_first, y_second = train_test_split(x_train, y_train, test_size=TEST_SIZE*2, random_state=33)
 
     # initialize model
     hidden_size_1 = test_case[0]
@@ -225,11 +225,11 @@ def print_final(accuracies, test_case, num_features, results):
 # assumes x is already PCA-ed
 def cross_validation_test(x, y, test_case, num_features):
     # first check on one iteration
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=23)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=33)
     final_accuracy, test_case, num_features = process(test_case, x_train, x_test, y_train, y_test, num_features)
     # if good enough proceed to do 10-FOLD-CROSS-VALIDATION
     if final_accuracy > 0.9:
-        kf = KFold(n_splits=K_FOLD_NUMBER, random_state = 70, shuffle = True)
+        kf = KFold(n_splits=K_FOLD_NUMBER, random_state = 22, shuffle = True)
         accuracies = np.array([0, 0, 0])
         for train_index, test_index in kf.split(x):
             x_train, x_test = x[train_index], x[test_index]
@@ -278,5 +278,5 @@ combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_siz
 for num_features in [2, 5, 10, 15, 20, 30]:
     x_reduced = pca(x.T, num_features)
     x_reduced = np.hstack((x_reduced, np.ones((x_reduced.shape[0], 1))))
-    Parallel(n_jobs=10)(delayed(cross_validation_test)(x_reduced, y, test_case, num_features) for test_case in combined)
+    Parallel(n_jobs=12)(delayed(cross_validation_test)(x_reduced, y, test_case, num_features) for test_case in combined)
 

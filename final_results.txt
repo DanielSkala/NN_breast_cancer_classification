@@ -1,0 +1,105 @@
+Best with 5 features:
+
+**********************************
+First Layer: 2
+Second Layer: 0
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.972/0.961/0.924
+
+We do transfer learning on this case!
+From 0.965/0.965/0.93 to 0.947/0.947/0.93
+
+**********************************
+First Layer: 4
+Second Layer: 2
+Keep Rate of: 0.95
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.972/0.967/0.93
+
+We do transfer learning on this case!
+From 0.965/0.965/0.965 to 0.965/0.965/0.965
+
+**********************************
+First Layer: 4
+Second Layer: 8
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.974/0.968/0.93
+
+We do transfer learning on this case!
+From 0.965/0.965/0.965 to 0.965/0.965/0.965
+
+**********************************
+First Layer: 8
+Second Layer: 2
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.974/0.965/0.935
+
+We do transfer learning on this case!
+From 0.965/0.965/0.965 to 0.965/0.965/0.947
+
+**********************************
+First Layer: 8
+Second Layer: 4
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 8000
+With 5 features: 
+The accuracies were:
+0.974/0.965/0.926
+
+We do transfer learning on this case!
+From 0.965/0.965/0.965 to 0.965/0.965/0.947
+
+**********************************
+First Layer: 8
+Second Layer: 4
+Keep Rate of: 0.95
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.97/0.968/0.93
+
+We do transfer learning on this case!
+From 0.965/0.965/0.947 to 0.965/0.965/0.947
+
+**********************************
+First Layer: 2
+Second Layer: 2
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.972/0.963/0.935
+
+We do transfer learning on this case!
+From 0.965/0.965/0.947 to 0.965/0.965/0.93
+
+**********************************
+First Layer: 4
+Second Layer: 4
+Keep Rate of: 1
+Learning Rate of: 0.1
+Epoch: 10000
+With 5 features: 
+The accuracies were:
+0.974/0.97/0.933
+
+We do transfer learning on this case!
+From 0.965/0.965/0.965 to 0.965/0.965/0.965
