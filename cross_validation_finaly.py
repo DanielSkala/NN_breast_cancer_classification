@@ -267,8 +267,8 @@ x = df.drop('label', 1)
 # epochs_arr = [6000]
 
 
-hidden_size_1_arr = [2, 4, 8, 16]
-hidden_size_2_arr = [0, 2, 4, 8]
+hidden_size_1_arr = [2]
+hidden_size_2_arr = [0]
 keep_rate_arr = [0.95, 1]
 learning_rate_arr = [0.001, 0.01, 0.1]
 epochs_arr = [2000, 4000, 8000, 10000]

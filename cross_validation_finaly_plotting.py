@@ -43,7 +43,7 @@ def feed_forward(weights, inputs, keep_rate):
 def derivative_loss_array(y_pred, potential, y_true):
     ret_arr = np.zeros(y_pred.shape)
     mask = (y_pred == 0) | (y_pred == 1)
-    ret_arr[mask] = 0 * (y_pred[mask] - y_true[mask])
+    ret_arr[mask] = 1 * (y_pred[mask] - y_true[mask])
     ret_arr[~mask] = (1 - y_true[~mask] - sigmoid(-potential[~mask])) * (
             1 / (y_pred[~mask] * (1 - y_pred[~mask])))
     return ret_arr
@@ -65,10 +65,24 @@ def backpropagation(weights, activation_layers, potential, y_true, dropouts, kee
 
 # TODO : Real Loss Function
 def loss(y_pred, potential, y_true):
-
+    ret_arr = np.zeros(y_pred.shape)
+    curr = np.zeros(y_pred.shape)
+    mask = (y_pred == 0) | (y_pred == 1)
+    ret_arr[mask] = 1000000 * (y_pred[mask] - y_true[mask])
+    curr[~mask] = 1 - 2 * y_true[~mask]
+    for i in range(curr.shape[0]):
+    	if curr[i] == 255:
+    		curr[i] = -1
+    ret_arr[~mask] = np.log(1 + np.exp((curr[~mask])*potential[~mask]))
+    ret_arr = np.nan_to_num(ret_arr,nan= 1000000)
+    for i in range(ret_arr.shape[0]):
+    	if ret_arr[i] > 1000000:
+    		ret_arr[i] = 1000000
     # I do the list, flatten() and tolist() because there was an error TypeError: unhashable type: 'numpy.ndarray' when trying to plot
-    return list((np.log(1 + np.exp(-potential))).flatten().tolist())
+    return np.mean(ret_arr)
 
+def loss_MSE(y_pred, potential, y_true):
+	return np.mean((y_true - y_pred)**2)
 
 def train_model(weights, keep_rate, learning_rate, epochs, x_train, y_train, x_test, y_test):
     N = y_train.size
@@ -116,9 +130,7 @@ def accuracy(weights, x_test, y_test, err_margin, train_errors, test_errors, epo
     # for plotting
     print("Plotting")
     acc = correct / y_test.size
-    train = list(itertools.chain.from_iterable(train_errors))
-    test = list(itertools.chain.from_iterable(test_errors))
-    plot(epochs, train, test, acc)
+    plot(epochs, train_errors, test_errors, acc)
 
     return acc
 
@@ -251,9 +263,11 @@ def plot(epochs, train_errors, test_errors, acc):
     sns.set(style="whitegrid")
     sns.set(rc={"figure.figsize": (10, 6)})
     sns.set(font_scale=1.5)
+    print(epochs)
+    print(len(test_errors))
 
     # I just put test_errors for train because I thought that this might solve the ValueError: All arrays must be of the same length error
-    sns.lineplot(x=range(epochs), y=test_errors, label='Train')
+    sns.lineplot(x=range(epochs), y=train_errors, label='Train')
     sns.lineplot(x=range(epochs), y=test_errors, label='Test')
     plt.legend()
     plt.title(f"Mean Squared Error (acc: {round(acc, 3)})")
@@ -265,7 +279,9 @@ def plot(epochs, train_errors, test_errors, acc):
 df = pd.read_csv('databases/wdbc_unsplit_norm.csv')
 y = pd.get_dummies(df.label).values
 y = y[:, 1]
+
 y = y.reshape(-1, 1)
+
 x = df.drop('label', 1)
 
 # comment out when running main for!
@@ -294,12 +310,18 @@ hidden_size_1_arr = [8]
 hidden_size_2_arr = [0]
 keep_rate_arr = [1]
 learning_rate_arr = [0.1]
-epochs_arr = [8000]
+epochs_arr = [100000]
 
 combined = [(h1, h2, kr, lr, e) for h1 in hidden_size_1_arr for h2 in hidden_size_2_arr for kr in keep_rate_arr for lr in learning_rate_arr for e in epochs_arr]
 
-for num_features in [10]:
-    x_reduced = pca(x.T, num_features)
-    x_reduced = np.hstack((x_reduced, np.ones((x_reduced.shape[0], 1))))
-    Parallel(n_jobs=12)(delayed(cross_validation_test)(x_reduced, y, test_case, num_features) for test_case in combined)
+num_features = 10
+x_reduced = pca(x.T, num_features)
+x_reduced = np.hstack((x_reduced, np.ones((x_reduced.shape[0], 1))))
+
+cross_validation_test(x_reduced, y, combined[0], num_features)
+
+# for num_features in [10]:
+#     x_reduced = pca(x.T, num_features)
+#     x_reduced = np.hstack((x_reduced, np.ones((x_reduced.shape[0], 1))))
+#     Parallel(n_jobs=12)(delayed(cross_validation_test)(x_reduced, y, test_case, num_features) for test_case in combined)
 
